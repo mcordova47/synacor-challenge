@@ -19,6 +19,8 @@ executeProgram = do
   -- execute program
   trace program
   where
+    readChallenge =
+      parseProgram <$> BS.readFile "/Users/marc.cordova/Documents/professional-development/synacore-challenge/challenge.bin"
     execute prog =
       execute' prog >>= \case
         (Left err, _) -> putStrLn err
@@ -128,10 +130,6 @@ executeSteps steps =
     push val = do
       memory <- get
       put memory { stack = val : stack memory }
-
-readChallenge :: IO [Step]
-readChallenge =
-  parseProgram <$> BS.readFile "/Users/marc.cordova/Documents/professional-development/synacore-challenge/challenge.bin"
 
 data Step
   = Operation Operation
