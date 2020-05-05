@@ -1,3 +1,3 @@
-# Changelog for synacore-challenge
+# Changelog for synacor-challenge
 
 ## Unreleased changes

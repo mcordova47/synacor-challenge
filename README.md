@@ -1,1 +1,1 @@
-# synacore-challenge
+# synacor-challenge

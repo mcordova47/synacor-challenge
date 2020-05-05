@@ -20,7 +20,7 @@ executeProgram = do
   trace program
   where
     readChallenge =
-      parseProgram <$> BS.readFile "/Users/marc.cordova/Documents/professional-development/synacore-challenge/challenge.bin"
+      parseProgram <$> BS.readFile "challenge.bin"
     execute prog =
       execute' prog >>= \case
         (Left err, _) -> putStrLn err
