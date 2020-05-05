@@ -57,60 +57,62 @@ executeSteps steps =
     stepsWithIndices =
       zip [0..] steps
     executeSteps' = \case
-      (n, op@(Operation Halt)) : _ -> do
-        logStep n op
-        putStrLn ("Halting execution" :: Text)
-      (n, op@(Operation (Set reg expr))) : rest -> do
-        logStep n op
-        memory <- get
-        let registers' = registers memory
-        lit <- getLiteral expr
-        put memory { registers = Map.insert reg lit registers' }
-        executeSteps' rest
-      (n, op@(Operation (Eq reg expr1 expr2))) : rest -> do
-        logStep n op
-        memory <- get
-        let registers' = registers memory
-        lit1 <- getLiteral expr1
-        lit2 <- getLiteral expr2
-        let value = if lit1 == lit2 then 1 else 0
-        put memory { registers = Map.insert reg value registers' }
-        executeSteps' rest
-      (n, op@(Operation (Jmp to))) : rest -> do
-        logStep n op
-        to' <- getLiteral to
-        jump to'
-      (n, op@(Operation (Jt expr to))) : rest -> do
-        logStep n op
-        to' <- getLiteral to
-        lit <- getLiteral expr
-        if lit == 0 then
-          executeSteps' rest
-        else
-          jump to'
-      (n, op@(Operation (Jf expr to))) : rest -> do
-        logStep n op
-        to' <- getLiteral to
-        lit <- getLiteral expr
-        if lit == 0 then
-          jump to'
-        else
-          executeSteps' rest
-      (n, op@(Operation (Call to))) : rest -> do
-        logStep n op
-        push (n + 1)
-        to' <- getLiteral to
-        jump to'
-      (line, op@(Operation (Out (Literal n)))) : rest -> do
-        logStep line op
-        putStr $ Text.singleton $ chr n
-        executeSteps' rest
-      (n, op@(Operation NoOp)) : rest -> do
-        logStep n op
-        executeSteps' rest
-      (n, step) : _ -> do
-        logStep n step
-        putStrLn ("Not implemented: " <> show step :: Text)
+      (n, op) : rest ->
+        case op of
+          Operation Halt -> do
+            logStep n op
+            throwError "Halting execution"
+          Operation (Set reg expr) -> do
+            logStep n op
+            memory <- get
+            let registers' = registers memory
+            lit <- getLiteral expr
+            put memory { registers = Map.insert reg lit registers' }
+            executeSteps' rest
+          Operation (Eq reg expr1 expr2) -> do
+            logStep n op
+            memory <- get
+            let registers' = registers memory
+            lit1 <- getLiteral expr1
+            lit2 <- getLiteral expr2
+            let value = if lit1 == lit2 then 1 else 0
+            put memory { registers = Map.insert reg value registers' }
+            executeSteps' rest
+          Operation (Jmp to) -> do
+            logStep n op
+            to' <- getLiteral to
+            jump to'
+          Operation (Jt expr to) -> do
+            logStep n op
+            to' <- getLiteral to
+            lit <- getLiteral expr
+            if lit == 0 then
+              executeSteps' rest
+            else
+              jump to'
+          Operation (Jf expr to) -> do
+            logStep n op
+            to' <- getLiteral to
+            lit <- getLiteral expr
+            if lit == 0 then
+              jump to'
+            else
+              executeSteps' rest
+          Operation (Call to) -> do
+            logStep n op
+            push (n + 1)
+            to' <- getLiteral to
+            jump to'
+          Operation (Out (Literal charCode)) -> do
+            logStep n op
+            putStr $ Text.singleton $ chr charCode
+            executeSteps' rest
+          Operation NoOp -> do
+            logStep n op
+            executeSteps' rest
+          _ -> do
+            logStep n op
+            throwError $ "Not implemented: " <> show op
       [] ->
         pure ()
     getLiteral = \case
